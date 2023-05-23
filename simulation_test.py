@@ -5,6 +5,33 @@ class Haushalt:
         self.id = id
         self.erspartes = random.randint(0,100) # zufälliger Wert zwischen 0 und 100	in Euro
         self.schulden = 0 # 
+        self.einkommen = random.randint(0,100) # zufälliger Wert zwischen 0 und 100 in Euro
+        self.ausgaben = random.randint(0,100) # zufälliger Wert zwischen 0 und 100 in Euro
+        self.zinsen = 0.05 # !!!!!Stellschraube!!!!!
+
+    def sparen(self):# Sparen
+        if self.einkommen > self.ausgaben:  
+            self.erspartes += self.einkommen - self.ausgaben    
+        else:
+            self.erspartes -= self.ausgaben - self.einkommen
+    
+    def konsumieren(self):# Konsumieren
+        if self.erspartes > 0:
+            konsum = min(self.erspartes, self.ausgaben)# Konsumieren bis erspartes oder ausgaben aufgebraucht sind
+            self.erspartes -= konsum
+            self.ausgaben -= konsum
+        else:
+            self.ausgaben = 0
+
+    def zinsen_zahlen(self):
+        zinszahlung = self.schulden * self.zinsen
+        if self.erspartes >= zinszahlung:
+            self.erspartes -= zinszahlung
+            self.schulden += zinszahlung
+        else:
+            # Wenn der Haushalt die Zinsen nicht zahlen kann, wird der Kredit als ausgefallen betrachtet
+            self.schulden -= self.erspartes
+            self.erspartes = 0
 
     def kredit_aufnehmen(self, bank):
         kredit_betrag = random.randint(0,100) #!!!! Stellschraube !!!!!
@@ -33,6 +60,7 @@ class Bank:
         self.kapital = random.randint(100,200) # zufälliger Wert zwischen 100 und 200 in Euro
         self.kredite = 0 # Anfangskredite sind 0
         self.risiokoeffizient = random.uniform(0.5,2) # !!!!!Stellschraube!!!!!
+        self.zinsen = 0.05 # !!!!!Stellschraube!!!!!
 
     def kredit_vergeben(self, betrag):# Vergibt einen Kredit
         if self.kapital - betrag > 0 and self.kredite + betrag < self.kapital * self.risiokoeffizient:	
@@ -42,6 +70,10 @@ class Bank:
         else:
             return False
         
+    
+    def zinsen_erheben(self):
+        self.kapital += self.kredite * self.zinsen
+
     def solvenz_pruefen(self):# Prüfe ob die Bank noch solvent ist
         if self.kapital < self.kredite / 2:
             return False
@@ -59,6 +91,8 @@ banken = [Bank(i) for i in range(10)] # Erstelle 10 Banken
 
 for t in range(100):# Für 100 Zeitschritte
     for haushalt in haushalte:
+        haushalt.sparen()# Sparen
+        haushalt.konsumieren()# Konsumieren
         bank = random.choice(banken) # Zufällige Auswahl einer Bank
         haushalt.kredit_aufnehmen(bank)# Kredit aufnehmen
         if haushalt.kredit_ausfallen():# Kreditausfall
